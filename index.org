@@ -1,0 +1,15 @@
+* Hello
+** moo
+text here
+
+#+BEGIN_SRC emacs-lisp :results output :exports both
+(print (getenv "argv"))
+#+END_SRC
+
+#+BEGIN_SRC sh :results output :exports both
+ps
+#+END_SRC
+
+
+
+
