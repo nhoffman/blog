@@ -13,9 +13,10 @@ for post in posts:
     page = env.Command(
         target = path.join(outdir, path.basename(post)).replace('.org','.html'),
         source = post,
-        action = ('emacs --batch --no-init-file --script bin/export-page.el '
+        action = ('emacs --batch --no-init-file '
+                  '--script bin/export-page.el '
                   '-template post-template.org '
                   '-include $SOURCE '
                   '-html $TARGET ')
         )
-    Depends(page, 'post-template.org')
+    Depends(page, ['bin/export-page.el','post-template.org'])

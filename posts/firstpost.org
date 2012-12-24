@@ -1,1 +1,26 @@
-Hello, I am the first post.
+:PROPERTIES:
+:title: First Post!
+:tags: testing,meta
+:END:
+
+* Hello, I am the first post.
+
+#+BEGIN_SRC sh :results output :exports both
+ls
+#+END_SRC
+
+#+BEGIN_SRC python :results output :exports both
+for i in range(10):
+    print i,
+print 'done!'
+#+END_SRC
+
+So I think that I can visit this file, read the properties, then use them to set the title of the resulting page.
+
+* Next headline
+** another section
+some text
+** another section
+more text
+* last headline
+meh

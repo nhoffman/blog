@@ -1,3 +1,7 @@
+#+STYLE: <link rel="stylesheet" type="text/css" href="http://orgmode.org/worg/style/worg.css" />
+#+TITLE: ~TITLE~
+#+OPTIONS: toc:nil ^:nil num:nil
+
 I come from the template.
 
 #+INCLUDE: "~INCLUDEFILE~"
