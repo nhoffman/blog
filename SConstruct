@@ -9,6 +9,12 @@ env = Environment(ENV=environ, variables=vars)
 
 posts = glob.glob('posts/*.org')
 
+css_worg = env.Command(
+    target = '$outdir/worg.css',
+    source = 'css/worg.css',
+    action = 'cp $SOURCE $TARGET'
+    )
+
 for post in posts:
     page = env.Command(
         target = path.join(outdir, path.basename(post)).replace('.org','.html'),

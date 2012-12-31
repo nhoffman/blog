@@ -1,7 +1,8 @@
-#+STYLE: <link rel="stylesheet" type="text/css" href="http://orgmode.org/worg/style/worg.css" />
-#+TITLE: ~TITLE~
+#+STYLE: <link rel="stylesheet" type="text/css" href="./worg.css" />
 #+OPTIONS: toc:nil ^:nil num:nil
+#+TITLE: ~TITLE~
+#+DATE: ~DATE~
 
-I come from the template.
+~DATE~
 
 #+INCLUDE: "~INCLUDEFILE~"

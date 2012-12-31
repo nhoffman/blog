@@ -31,19 +31,26 @@
       (puthash (substring opt 1 nil) val args))
   (setq clargs (cdr clargs)))
 
-(add-to-list (quote load-path) "~/.emacs.d/org-mode/lisp")
-(add-to-list (quote load-path) "~/.emacs.d/ess/lisp")
-(add-to-list (quote load-path) "~/.emacs.d")
-(require (quote ess-site) "~/.emacs.d/ess/lisp/ess-site")
+(add-to-list 'load-path "~/.emacs.d/org-mode/lisp")
+(add-to-list 'load-path "~/.emacs.d/ess/lisp")
+(add-to-list 'load-path "~/.emacs.d")
+(require 'ess-site "~/.emacs.d/ess/lisp/ess-site")
 (setq ess-ask-for-ess-directory nil)
 (setq make-backup-files nil)
+
+(require 'ob-pygment)
+;; (require 'htmlize)
+
 (add-hook 'org-mode-hook
 	  '(lambda ()
+	     (turn-on-font-lock)
+	     (setq org-src-fontify-natively t)
+	     (setq org-pygment-path "/usr/local/bin/pygmentize")
+
 	     (setq org-confirm-babel-evaluate nil)
 	     (setq org-export-allow-BIND 1)
 	     (setq org-export-html-coding-system 'utf-8)
 	     (setq org-export-html-postamble nil)
-	     ;; (setq org-export-html-postamble nil)
 	     (org-babel-do-load-languages
 	      (quote org-babel-load-languages)
 	      (quote ((R . t)
@@ -61,13 +68,14 @@
 (require-option "include" args)
 (require-option "html" args)
 
-;; save the default directory; find-file seems to change it
+;; save the current directory; find-file seems to change it
 (setq cwd default-directory)
 
 ;; open the file containing the post and read the properties 
 (find-file (gethash "include" args))
 (org-mode)
 (setq titlestring (org-entry-get nil "title" 1))
+(setq datestring (org-entry-get nil "date" 1))
 
 (setq default-directory cwd)
 
@@ -75,9 +83,11 @@
 (copy-file (gethash "template" args) tempfile t)
 (find-file tempfile)
 (org-mode)
+
 ;; replacements
 (replace-all "~INCLUDEFILE~" (gethash "include" args))
 (replace-all "~TITLE~" titlestring)
+(replace-all "~DATE~" datestring)
 
 ;;(print (org-export-as-html 3 nil nil "temp.html"))
 (org-export-as-html-to-buffer 3)
