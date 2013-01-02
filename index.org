@@ -1,15 +1,30 @@
-* Hello
-** moo
-text here
+#+Property: :exports results :results replace
+#+STYLE: <link rel="stylesheet" type="text/css" href="./worg.css" />
+#+OPTIONS: ^:nil
+#+TITLE: Exercise in futility
 
-#+BEGIN_SRC emacs-lisp :results output :exports both
-(print (getenv "argv"))
+#+BEGIN_SRC python :results output raw :exports results
+  import os
+  import json
+  posts = os.environ.get('POSTS','').split()
+  
+  for post in posts:
+      basename = os.path.basename(post).replace('.org','')
+      with open('build/%s.json' % basename) as j:
+          meta = json.load(j)
+  
+      with open(post) as p:
+          props = dict(meta, post = '%s.html' % basename)
+  
+      print '* %(title)s' % props
+      # print '<h1><a href="%(post)s">%(title)s</a></h1>' % props
+      print '%(date)s' % props
+  
+      with open('build/%s.html' % basename) as h:
+          print '#+BEGIN_HTML'
+          print h.read()
+          print '#+END_HTML'
+      print 'Filed under *%(tags)s*' % props      
 #+END_SRC
-
-#+BEGIN_SRC sh :results output :exports both
-ps
-#+END_SRC
-
-
 
 
