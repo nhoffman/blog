@@ -27,7 +27,7 @@ vars.Add('build', 'compiled post bodies',
 env = Environment(ENV=environ, variables=vars)
 env['BUILDERS']['properties'] = Builder(action = properties)
 
-posts = glob.glob('posts/*.org')
+posts = [p for p in glob.glob('posts/*.org') if '/_' not in p]
 
 css_worg = env.Command(
     target = '$site/worg.css',
