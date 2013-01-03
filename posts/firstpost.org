@@ -4,7 +4,7 @@
 :tags: testing,meta
 :END:
 
-* Hello, I am the first post.
+** Hello, I am the first post.
 
 #+BEGIN_SRC sh :results output :exports both
 ls
@@ -18,10 +18,10 @@ print 'done!'
 
 So I think that I can visit this file, read the properties, then use them to set the title of the resulting page.
 
-* Next headline
+** Next headline
 ** another section
 some text
 ** another section
 more text
-* last headline
+** last headline
 meh

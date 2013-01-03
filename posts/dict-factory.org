@@ -9,7 +9,7 @@ when actual dict objects are required. Adapted from
 http://docs.python.org/lib/sqlite3-Connection-Objects.html, but
 modified to use a list comprehension instead of an explicit loop.
 
-#+BEGIN_SRC python 
+#+BEGIN_SRC python :results output :exports both
 import sqlite3
 
 def dict_factory(cursor, row):
@@ -19,5 +19,5 @@ con = sqlite3.connect(":memory:")
 con.row_factory = dict_factory
 cur = con.cursor()
 cur.execute("select 1 as a")
-print cur.fetchone()["a"]
+print cur.fetchone()
 #+END_SRC

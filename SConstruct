@@ -52,6 +52,7 @@ css_worg = env.Command(
     action = 'cp $SOURCE $TARGET'
     )
 
+# process all individual posts
 properties = []
 for post in posts:
     basename = path.splitext(path.basename(post))[0]
@@ -82,6 +83,7 @@ for post in posts:
         )
     Depends(page, [body, 'bin/common.el'])
 
+# combined posts
 if not all(path.exists(p) for p in properties):
     print 'run scons again to build combined pages'
 else:
