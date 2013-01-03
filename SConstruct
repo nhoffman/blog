@@ -60,18 +60,27 @@ for post in posts:
         source = post)
     properties.append(str(props))
 
-    body, page = env.Command(
-        target = ['$build/{}.html'.format(basename),
-                  '$site/{}.html'.format(basename)],
-        source = post,
+    body, = env.Command(
+        target = '$build/{}.html'.format(basename),
+        source = ['bin/export-body.el', post],
         action = ('emacs --batch --no-init-file '
-                  '--script bin/build-page.el '
-                  '-post $SOURCE '
-                  '-template post-template.org '
-                  '-html-body ${TARGETS[0]} '
-                  '-html ${TARGETS[1]} ')
+                  '--script ${SOURCES[0]} '
+                  '-post ${SOURCES[1]} '
+                  '-html-body $TARGET ')
         )
-    Depends(page, ['bin/common.el','bin/build-page.el','post-template.org'])
+    Depends(body, ['bin/common.el'])
+
+    page, = env.Command(
+        target = '$site/%s.html' % basename,
+        source = ['bin/combine-posts.el', 'index.org'],
+        action = (
+            'POSTS="%s" '
+            'emacs --batch --no-init-file '
+            '--script ${SOURCES[0]} '
+            '-org-src ${SOURCES[1]} '
+            '-html $TARGET ') % basename
+        )
+    Depends(page, [body, 'bin/common.el'])
 
 if not all(path.exists(p) for p in properties):
     print 'run scons again to build combined pages'

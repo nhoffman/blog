@@ -3,6 +3,10 @@
 #+OPTIONS: ^:nil num:nil
 #+TITLE: suboptimal
 
+* Welcome
+
+This is a blog for Noah Hoffman. 
+
 #+BEGIN_SRC python :results output raw :exports results
   import glob
   import collections
@@ -38,3 +42,10 @@
   
       print 'Filed under *%(tags)s*' % props
 #+END_SRC
+
+* About
+
+This site is constructed mostly using emacs org-mode as an excuse to
+learn some emacs lisp. The css stylesheet is derived from the file
+http://orgmode.org/worg/style/worg.css, which is provided under the
+GNU General Public License v3.

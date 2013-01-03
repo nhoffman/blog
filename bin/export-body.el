@@ -1,9 +1,7 @@
 (load-file "bin/common.el")
 
 (require-option "post" args)
-(require-option "template" args)
 (require-option "html-body" args)
-(require-option "html" args)
 
 ;; save the current directory; find-file seems to change it
 (setq cwd default-directory)
@@ -30,26 +28,5 @@
 (write-file (gethash "html-body" args))
 (setq default-directory cwd)
 
-;; include compiled body in a template and build standalone post
-(setq post-temp (make-temp-name "temp-page-"))
-(copy-file (gethash "template" args) post-temp t)
-(find-file post-temp)
-(org-mode)
-
-;; replacements
-(replace-all "~INCLUDEFILE~" (gethash "html-body" args))
-(replace-all "~TITLE~" titlestring)
-(replace-all "~DATE~" datestring)
-(replace-all "~TAGS~" tagstring)
-
-;; compile full post
-(setq org-export-with-toc nil)
-(org-export-as-html 3 ;; levels of TOC 
-		    nil ;; EXT-PLIST 
-		    "string" ;; TO-BUFFER 
-		    )
-(write-file (gethash "html" args))
-
-(setq default-directory cwd)
 (delete-file body-temp)
-(delete-file post-temp)
+
