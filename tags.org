@@ -1,0 +1,25 @@
+#+Property: :exports results :results replace
+#+STYLE: <link rel="stylesheet" type="text/css" href="./worg.css" />
+#+OPTIONS: ^:nil num:nil
+#+TITLE: suboptimal
+
+#+BEGIN_SRC python :results output raw :exports results
+  import glob
+  import collections
+  import json
+  
+  # link and page count for each post
+  tags = collections.defaultdict(list)
+  jfiles = glob.glob('build/*.json')
+  for jfile in jfiles:
+      with open(jfile) as j:
+          d = json.load(j)
+      for tag in d['tags'].split(','):
+          tags[tag].append(d)
+  
+  print 'Topics: [[file:./index.html][all]] (%s)' % len(jfiles),
+  for tag, posts in sorted(tags.items()):
+      print '[[file:./%s.html][%s]] (%s)' % (tag, tag, len(posts)),
+  print
+#+END_SRC
+

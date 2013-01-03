@@ -72,7 +72,7 @@ for post in posts:
 
     page, = env.Command(
         target = '$site/%s.html' % basename,
-        source = ['bin/combine-posts.el', 'index.org'],
+        source = ['bin/combine-posts.el', 'post.org'],
         action = (
             'POSTS="%s" '
             'emacs --batch --no-init-file '
@@ -87,6 +87,16 @@ if not all(path.exists(p) for p in properties):
 else:
     metadata = [get_json(p) for p in properties]
     metadata.sort(key = lambda d: d['date'], reverse = True)
+
+    tags_body, = env.Command(
+        target = '$build/tags.html',
+        source = ['bin/export-body.el', 'tags.org'],
+        action = ('emacs --batch --no-init-file '
+                  '--script ${SOURCES[0]} '
+                  '-post ${SOURCES[1]} '
+                  '-html-body $TARGET ')
+        )
+    Depends(tags_body, ['bin/common.el'])
 
     tags = collections.defaultdict(list)
     tags['index'] = metadata
