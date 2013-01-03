@@ -51,6 +51,7 @@
 	     (setq org-export-allow-BIND 1)
 	     (setq org-export-html-coding-system 'utf-8)
 	     (setq org-export-html-postamble nil)
+	     (setq org-export-htmlize-output-type 'css)
 	     (org-babel-do-load-languages
 	      (quote org-babel-load-languages)
 	      (quote ((R . t)
