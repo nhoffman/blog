@@ -96,4 +96,5 @@ else:
                 '-org-src $SOURCE '
                 '-html $TARGET ').format(' '.join(d['basename'] for d in posts))
             )
-        Depends(page, ['bin/common.el','bin/combine-posts.el'])
+        Depends(page, ['bin/common.el','bin/combine-posts.el'] + \
+                    [d['body'] for d in posts])
