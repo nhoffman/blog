@@ -71,7 +71,7 @@ for post in posts:
                   '-html-body ${TARGETS[0]} '
                   '-html ${TARGETS[1]} ')
         )
-    Depends(page, ['bin/build-page.el','post-template.org'])
+    Depends(page, ['bin/common.el','bin/build-page.el','post-template.org'])
 
 if not all(path.exists(p) for p in properties):
     print 'run scons again to build combined pages'
@@ -86,7 +86,7 @@ else:
             tags[tag].append(d)
 
     for tag, posts in tags.items():
-        index = env.Command(
+        page, = env.Command(
             target = '$site/%s.html' % tag,
             source = 'index.org',
             action = (
@@ -96,3 +96,4 @@ else:
                 '-org-src $SOURCE '
                 '-html $TARGET ').format(' '.join(d['basename'] for d in posts))
             )
+        Depends(page, ['bin/common.el','bin/combine-posts.el'])
