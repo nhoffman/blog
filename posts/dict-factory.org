@@ -1,0 +1,23 @@
+:PROPERTIES:
+:title: dict_factory for sqlite3 queries 
+:date: 2013-01-03
+:tags: python,sqlite
+:END:
+
+Probably not as efficient as using the sqlite3.Row class, but works
+when actual dict objects are required. Adapted from
+http://docs.python.org/lib/sqlite3-Connection-Objects.html, but
+modified to use a list comprehension instead of an explicit loop.
+
+#+BEGIN_SRC python 
+import sqlite3
+
+def dict_factory(cursor, row):
+    return dict((col[0],row[idx]) for idx, col in enumerate(cursor.description))
+
+con = sqlite3.connect(":memory:")
+con.row_factory = dict_factory
+cur = con.cursor()
+cur.execute("select 1 as a")
+print cur.fetchone()["a"]
+#+END_SRC
