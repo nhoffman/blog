@@ -36,10 +36,8 @@ def get_properties(target, source, env):
         json.dump(d, out, sort_keys=True, indent = 4)
 
 vars = Variables()
-vars.Add('site', 'html output',
-         ARGUMENTS.get('site', 'site'))
-vars.Add('build', 'compiled post bodies',
-         ARGUMENTS.get('build', 'build'))
+vars.Add('site', 'html output', ARGUMENTS.get('site', 'site'))
+vars.Add('build', 'compiled post bodies', ARGUMENTS.get('build', 'build'))
 
 env = Environment(ENV=environ, variables=vars)
 env['BUILDERS']['properties'] = Builder(action = get_properties)
@@ -52,6 +50,7 @@ css_worg = env.Command(
     action = 'cp $SOURCE $TARGET'
     )
 
+pages = []
 # process all individual posts
 properties = []
 for post in posts:
@@ -65,9 +64,10 @@ for post in posts:
         target = '$build/{}.html'.format(basename),
         source = ['bin/export-body.el', post],
         action = ('emacs --batch --no-init-file '
-                  '--script ${SOURCES[0]} '
-                  '-post ${SOURCES[1]} '
-                  '-html-body $TARGET ')
+                  '--script ${SOURCES[0]} -post ${SOURCES[1]} '
+                  '-html-body $TARGET '
+                  '&> emacs.log'
+                  )
         )
     Depends(body, ['bin/common.el'])
 
@@ -77,12 +77,14 @@ for post in posts:
         action = (
             'POSTS="%s" '
             'emacs --batch --no-init-file '
-            '--script ${SOURCES[0]} '
-            '-org-src ${SOURCES[1]} '
-            '-html $TARGET ') % basename
+            '--script ${SOURCES[0]} -org-src ${SOURCES[1]} '
+            '-html $TARGET '
+            '&> emacs.log'
+            ) % basename
         )
     Depends(page, [body, 'bin/common.el'])
-
+    pages.append(page)
+    
 # combined posts
 if not all(path.exists(p) for p in properties):
     print 'run scons again to build combined pages'
@@ -90,15 +92,17 @@ else:
     metadata = [get_json(p) for p in properties]
     metadata.sort(key = lambda d: d['date'], reverse = True)
 
+    # tag line to be included in all combined pages
     tags_body, = env.Command(
         target = '$build/tags.html',
         source = ['bin/export-body.el', 'tags.org'],
         action = ('emacs --batch --no-init-file '
-                  '--script ${SOURCES[0]} '
-                  '-post ${SOURCES[1]} '
-                  '-html-body $TARGET ')
+                  '--script ${SOURCES[0]} -post ${SOURCES[1]} '
+                  '-html-body $TARGET '
+                  '&> emacs.log'
+                  )
         )
-    Depends(tags_body, ['bin/common.el'])
+    Depends(tags_body, ['bin/common.el'] + properties + pages)
 
     tags = collections.defaultdict(list)
     tags['index'] = metadata
@@ -109,13 +113,27 @@ else:
     for tag, posts in tags.items():
         page, = env.Command(
             target = '$site/%s.html' % tag,
-            source = 'index.org',
+            source = ['bin/combine-posts.el', 'index.org'],
             action = (
-                'POSTS="{}" '
+                'POSTS="%s" '
                 'emacs --batch --no-init-file '
-                '--script bin/combine-posts.el '
-                '-org-src $SOURCE '
-                '-html $TARGET ').format(' '.join(d['basename'] for d in posts))
+                '--script ${SOURCES[0]} -org-src ${SOURCES[1]} '
+                '-html $TARGET '
+                '&> emacs.log'
+                ) % ' '.join(d['basename'] for d in posts)
             )
-        Depends(page, ['bin/common.el','bin/combine-posts.el'] + \
+        Depends(page, ['bin/common.el','bin/combine-posts.el', tags_body] + \
                     [d['body'] for d in posts])
+        pages.append(page)
+        
+# publish the compiled pages
+publish = env.Command(
+    target = 'publish.log',
+    source = pages,
+    action = ('rsync -rv --exclude .git --delete $site/ ../blog-publish && '
+              'cd ../blog-publish && '
+              'git commit -a -m "publishing" && '
+              'git push origin gh-pages | tee $TARGET')
+    )
+Alias('publish', publish)
+Ignore('.', publish)

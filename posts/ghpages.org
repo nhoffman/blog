@@ -1,0 +1,39 @@
+:PROPERTIES:
+:title: Set up hosting using GutHub's gh-pages
+:date: 2013-01-03 
+:tags: meta
+:END:
+
+Guthub provides a really nice mechanism for hosting a site associated
+with a repo using [[http://pages.github.com/][Github Pages]]. Initial setup is described [[https://help.github.com/articles/creating-project-pages-manually][here]]. In
+short, the content of the site is stored in an "orphan" branch called
+"gh-pages". There's a mechanism for publishing to a subdirectory of
+the main repository using git submodules, but I've never enjoyed using
+this feature of git. So I did this.
+
+#+BEGIN_SRC sh :eval no :exports code
+cd ~/src
+git clone git@github.com:nhoffman/blog.git blog-publish
+cd blog-publish
+git checkout --orphan gh-pages
+git rm -rf .
+#+END_SRC
+
+I'll come up with something more automated for deployment, but for
+now:
+
+#+BEGIN_SRC sh :eval no :exports code
+cp ~/src/blog/site/* ~/src/blog-publish 
+#+END_SRC
+
+Add, commit, and publish.
+
+#+BEGIN_SRC sh :eval no :exports code
+git add .
+git commit -a -m "First pages commit"
+git push origin gh-pages
+#+END_SRC
+
+Now the site is published: http://nhoffman.github.com/blog/
+
+Thanks, Github!
