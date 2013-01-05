@@ -2,3 +2,4 @@ site
 .sconsign.dblite
 build
 *.log
+*.pyc

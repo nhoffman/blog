@@ -5,32 +5,25 @@ import pprint
 import collections
 from os import path, environ
 
-def get_json(fname):
-    with open(fname) as f:
-        d = json.load(f)
-    return d
+from pythings import read_json, org_properties
 
 def get_properties(target, source, env):
+    """
+    Write a json file to `target` serializing a dict of values taken
+    from all PROPERTIES drawers in org-mode file `source` plus keys
+    'basename','org','body','html'.
+    """
+
     org, = map(str, source)
     basename = path.splitext(path.basename(org))[0]
 
     d = dict(
+        org_properties(org),
         basename = basename,
         org = org,
         body = env.subst('$build/{}.html'.format(basename)),
         html = env.subst('$site/{}.html'.format(basename))
         )
-
-    in_props = False
-    with open(org) as fobj:
-        for line in fobj:
-            if ':PROPERTIES:' in line:
-                in_props = True
-            elif ':END:' in line:
-                in_props = False
-            elif in_props and line.startswith(':'):
-                _, key, val = line.split(':', 3)
-                d[key] = val.strip()
 
     with open(str(target[0]), 'w') as out:
         json.dump(d, out, sort_keys=True, indent = 4)
@@ -50,8 +43,8 @@ css_worg = env.Command(
     action = 'cp $SOURCE $TARGET'
     )
 
-pages = []
 # process all individual posts
+pages = []
 properties = []
 for post in posts:
     basename = path.splitext(path.basename(post))[0]
@@ -84,14 +77,11 @@ for post in posts:
         )
     Depends(page, [body, 'bin/common.el'])
     pages.append(page)
-    
+
 # combined posts
 if not all(path.exists(p) for p in properties):
     print 'run scons again to build combined pages'
 else:
-    metadata = [get_json(p) for p in properties]
-    metadata.sort(key = lambda d: d['date'], reverse = True)
-
     # tag line to be included in all combined pages
     tags_body, = env.Command(
         target = '$build/tags.html',
@@ -104,28 +94,31 @@ else:
         )
     Depends(tags_body, ['bin/common.el'] + properties + pages)
 
+    metadata = [read_json(p) for p in properties]
+    metadata.sort(key = lambda d: d['date'], reverse = True)
+
     tags = collections.defaultdict(list)
-    tags['index'] = metadata
     for d in metadata:
         for tag in d['tags'].split(','):
             tags[tag].append(d)
+
+    tags['index'] = metadata
 
     for tag, posts in tags.items():
         page, = env.Command(
             target = '$site/%s.html' % tag,
             source = ['bin/combine-posts.el', 'index.org'],
-            action = (
-                'POSTS="%s" '
-                'emacs --batch --no-init-file '
-                '--script ${SOURCES[0]} -org-src ${SOURCES[1]} '
-                '-html $TARGET '
-                '&> emacs.log'
-                ) % ' '.join(d['basename'] for d in posts)
+            action = ('POSTS="%s" '
+                      'emacs --batch --no-init-file '
+                      '--script ${SOURCES[0]} -org-src ${SOURCES[1]} '
+                      '-html $TARGET '
+                      '&> emacs.log'
+                      ) % ' '.join(d['basename'] for d in posts)
             )
         Depends(page, ['bin/common.el','bin/combine-posts.el', tags_body] + \
                     [d['body'] for d in posts])
         pages.append(page)
-        
+
 # publish the compiled pages
 publish = env.Command(
     target = 'publish.log',

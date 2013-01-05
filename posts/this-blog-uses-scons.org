@@ -1,0 +1,19 @@
+:PROPERTIES:
+:title: This blog uses scons 
+:date: 2013-01-04
+:tags: meta,scons
+:END:
+
+I have gotten a lot of use out of the build tool [[http://www.scons.org/][scons]], and so it's
+the natural choice in this context, where I have to script the
+compilation of posts, need to keep track of dependencies, and want to
+avoid re-compiling anything that has not changed.
+
+Here's the entire SConstruct file that I use to build this static site:
+
+#+INCLUDE: SConstruct src python
+
+A few things to point out:
+
+
+
