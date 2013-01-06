@@ -5,13 +5,15 @@ import pprint
 import collections
 from os import path, environ
 
-from pythings import read_json, org_properties
+from pythings import read_json, org_properties, tagdict
 
 def get_properties(target, source, env):
     """
-    Write a json file to `target` serializing a dict of values taken
-    from all PROPERTIES drawers in org-mode file `source` plus keys
-    'basename','org','body','html'.
+    A Buider action to write a json file to `target` serializing a
+    dict of values taken from all PROPERTIES drawers in org-mode file
+    `source` plus keys 'basename','org','body','html'. Uses scons
+    environment variables '$build' (for html bodies) and '$site' (for
+    complete pages).
     """
 
     org, = map(str, source)
@@ -28,15 +30,22 @@ def get_properties(target, source, env):
     with open(str(target[0]), 'w') as out:
         json.dump(d, out, sort_keys=True, indent = 4)
 
+# variables defining destination for output files; can be redefined
+# from the command line, eg "scons site=path/to/output"
 vars = Variables()
-vars.Add('site', 'html output', ARGUMENTS.get('site', 'site'))
+vars.Add('posts', 'org-mode source files', ARGUMENTS.get('posts', 'posts'))
 vars.Add('build', 'compiled post bodies', ARGUMENTS.get('build', 'build'))
+vars.Add('site', 'final html output', ARGUMENTS.get('site', 'site'))
 
 env = Environment(ENV=environ, variables=vars)
+# register the builder that we will use to write json files containing
+# metadata for each post.
 env['BUILDERS']['properties'] = Builder(action = get_properties)
 
-posts = [p for p in glob.glob('posts/*.org') if '/_' not in p]
+# list of org-mode fies containing posts
+posts = [p for p in glob.glob(env.subst('$posts/*.org')) if '/_' not in p]
 
+# make a copy of stylesheet in directory containing compiled output.
 css_worg = env.Command(
     target = '$site/worg.css',
     source = 'css/worg.css',
@@ -44,8 +53,8 @@ css_worg = env.Command(
     )
 
 # process all individual posts
-pages = []
-properties = []
+properties = [] # json files containing post metadata
+pages = [] # compiled html bodies
 for post in posts:
     basename = path.splitext(path.basename(post))[0]
     props, = env.properties(
@@ -75,14 +84,19 @@ for post in posts:
             '&> emacs.log'
             ) % basename
         )
+    # body is identified based on vaue of POSTS (in this case, a
+    # single basename) but is not provided as a source, so we need to
+    # explicitly declare the dependency.
     Depends(page, [body, 'bin/common.el'])
     pages.append(page)
 
-# combined posts
+# Build combined posts. We don't know what to include under each tag
+# until all of the json files have been written to disk, so we confirm
+# that this has been done before proceeding.
 if not all(path.exists(p) for p in properties):
-    print 'run scons again to build combined pages'
+    print '\n* run scons again to build combined pages *\n'
 else:
-    # tag line to be included in all combined pages
+    # compile tag line to be included in all combined pages
     tags_body, = env.Command(
         target = '$build/tags.html',
         source = ['bin/export-body.el', 'tags.org'],
@@ -94,14 +108,12 @@ else:
         )
     Depends(tags_body, ['bin/common.el'] + properties + pages)
 
-    metadata = [read_json(p) for p in properties]
-    metadata.sort(key = lambda d: d['date'], reverse = True)
+    # metadata is a list of dicts in reverse chronological order; tags
+    # is a dictionary providing pages for each tag.
+    metadata, tags = tagdict(
+        properties, key = lambda d: d['date'], reverse = True)
 
-    tags = collections.defaultdict(list)
-    for d in metadata:
-        for tag in d['tags'].split(','):
-            tags[tag].append(d)
-
+    # the front page (index.html) contains all of the posts.
     tags['index'] = metadata
 
     for tag, posts in tags.items():
@@ -115,8 +127,10 @@ else:
                       '&> emacs.log'
                       ) % ' '.join(d['basename'] for d in posts)
             )
-        Depends(page, ['bin/common.el','bin/combine-posts.el', tags_body] + \
-                    [d['body'] for d in posts])
+        # again, because we are only indirectly identifying the page
+        # bodies to be included via the POSTS environment variable, we
+        # need to explicitly identify them.
+        Depends(page, ['bin/common.el', tags_body] + [d['body'] for d in posts])
         pages.append(page)
 
 # publish the compiled pages

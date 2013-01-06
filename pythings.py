@@ -1,4 +1,5 @@
 import json
+import collections
 
 def read_json(fname):
     """
@@ -28,4 +29,26 @@ def org_properties(fname):
     
     return d
 
+def tagdict(jfiles, key = None, reverse = False):
+    """
+    Given a list of file names in `jfiles`, return (metadata, tags) in
+    which `metadata` is a list of dicts corresponding to metadata for
+    each post represented among `jfiles`; and `tags`, a dict in the
+    format {tag: [list-of-dicts]}. The order of each list is defined
+    by `key`, an optional function with a dict of metadata as its only
+    argument, and `reverse`.
+    """
+
+    metadata = [read_json(f) for f in jfiles]
+
+    if key:
+        metadata.sort(key = key, reverse = reverse)
+
+    tags = collections.defaultdict(list)
+    for d in metadata:
+        for tag in d['tags'].split(','):
+            tags[tag].append(d)
+    
+    return metadata, tags
+            
 

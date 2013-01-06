@@ -9,11 +9,20 @@ the natural choice in this context, where I have to script the
 compilation of posts, need to keep track of dependencies, and want to
 avoid re-compiling anything that has not changed.
 
+So here's the workflow for creating a new post (at the moment):
+
+- create a new file based on =posts/_post.org=
+- fill in empty fields in PROPERITES
+- compile the new post, then recompile all of the static pages.
+#+BEGIN_SRC sh :eval no :exports code 
+scons && scons
+#+END_SRC
+- publish to Github pages
+#+BEGIN_SRC sh :results output :exports both 
+scons publish
+#+END_SRC
+
 Here's the entire SConstruct file that I use to build this static site:
 
 #+INCLUDE: SConstruct src python
-
-A few things to point out:
-
-
 
