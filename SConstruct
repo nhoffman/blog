@@ -9,7 +9,7 @@ from pythings import read_json, org_properties, tagdict
 
 def get_properties(target, source, env):
     """
-    A Buider action to write a json file to `target` serializing a
+    A Builder action to write a json file to `target` serializing a
     dict of values taken from all PROPERTIES drawers in org-mode file
     `source` plus keys 'basename','org','body','html'. Uses scons
     environment variables '$build' (for html bodies) and '$site' (for
