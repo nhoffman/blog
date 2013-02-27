@@ -51,6 +51,7 @@ css_worg = env.Command(
     source = 'css/worg.css',
     action = 'cp $SOURCE $TARGET'
     )
+Alias('css', css_worg)
 
 # process all individual posts
 properties = [] # json files containing post metadata
@@ -138,9 +139,9 @@ publish = env.Command(
     target = 'publish.log',
     source = pages,
     action = ('rsync -rv --exclude .git --delete $site/ ../blog-publish && '
-              'cd ../blog-publish && '
+              '(cd ../blog-publish && '
               'git commit -a -m "publishing" && '
-              'git push origin gh-pages | tee $TARGET')
+              'git push origin gh-pages | tee $TARGET)')
     )
 Alias('publish', publish)
 Ignore('.', publish)
